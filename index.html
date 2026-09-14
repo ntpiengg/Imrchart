@@ -184,6 +184,10 @@
         <label class="field-label" for="stageInput">Stage breakpoints (point numbers where a new stage starts)</label>
         <input type="text" id="stageInput" placeholder="e.g. 16, 31">
         <div class="hint">Ignored if your data already has a stage column. Use 1‑based point numbers, comma separated.</div>
+        <label class="checkbox-row" style="margin-top:12px;display:flex;align-items:center;gap:7px;font-size:0.8rem;color:var(--ink);cursor:pointer;">
+          <input type="checkbox" id="floorZeroToggle" style="width:auto;">
+          Floor LCL at 0 (values can't be negative)
+        </label>
       </div>
     </div>
     <div class="btn-row">
@@ -236,6 +240,7 @@ const stageInput = document.getElementById('stageInput');
 const renderBtn = document.getElementById('renderBtn');
 const exampleBtn = document.getElementById('exampleBtn');
 const clearBtn = document.getElementById('clearBtn');
+const floorZeroToggle = document.getElementById('floorZeroToggle');
 const iChartSvg = document.getElementById('iChart');
 const mrChartSvg = document.getElementById('mrChart');
 const iNote = document.getElementById('iNote');
@@ -457,6 +462,11 @@ function render() {
   const breakpoints = parseBreakpoints(stageInput.value);
   const points = assignStages(rows, breakpoints);
   const stats = computeStageStats(points);
+  if (floorZeroToggle.checked) {
+    Object.values(stats).forEach(s => {
+      if (s.lcl !== null && s.lcl < 0) s.lcl = 0;
+    });
+  }
   const mrPoints = computeMR(points);
 
   iNote.textContent = points.length + ' points, ' + new Set(points.map(p => p.stage)).size + ' stage(s)';
@@ -502,6 +512,7 @@ function render() {
 }
 
 renderBtn.addEventListener('click', render);
+floorZeroToggle.addEventListener('change', render);
 exampleBtn.addEventListener('click', () => { dataInput.value = EXAMPLE; stageInput.value = ''; render(); });
 clearBtn.addEventListener('click', () => { dataInput.value = ''; stageInput.value = ''; render(); });
 
